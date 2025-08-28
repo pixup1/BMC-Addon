@@ -11,3 +11,19 @@ You should have received a copy of the GNU General Public License along with thi
 '''
 
 import bpy
+
+from . import props, ui, device, server as serv
+
+def register():
+	device.register()
+	props.register()
+	ui.register()
+	
+def unregister():
+	ui.unregister()
+	props.unregister()
+	device.unregister()
+
+if __name__ == "__main__":
+	register()
+	server = serv.Server(ip="127.0.0.1", port=34198)
