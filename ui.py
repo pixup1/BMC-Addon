@@ -26,7 +26,10 @@ class BmcMainPanel(BmcPanel):
 		
 		layout.template_icon_view(wm, "qr_code")
 		
-		layout.label(text=f"{ip}:{port}")
+		box = layout.box()
+		row = box.row()
+		row.alignment = 'CENTER'
+		row.label(text=f"{ip}:{port}")
 
 class BmcSubPanel1(BmcPanel):
 	bl_parent_id = "VIEW3D_PT_bmc_panel"
