@@ -1,33 +1,41 @@
+# bpy-only syntax
+# pyright: reportAttributeAccessIssue=false
+
 import bpy
 from .device import BmcDevice
+from .utils import get_ifs
+from .props_callbacks import *
 
-def register():
-	bpy.types.Scene.bmc_interface = bpy.props.EnumProperty( #TODO: use something other than scene
+def register() -> None:
+	ifs = get_ifs()
+	
+	bpy.types.WindowManager.bmc_interface = bpy.props.EnumProperty(
 		name="Interface",
 		description="Network interface to bind UDP server to",
-		items=[
-			("ETH0", "eth0", "Ethernet network interface"),
-			("WLAN0", "wlan0", "Wireless network interface"),
-			("LOOPBACK", "loopback", "Loopback interface")
-		],
-		default="WLAN0"
+		items=[(id, name, "IP: "+str(ip)) for (id, name, ip) in ifs],
+		default=ifs[0][0],
+		update=on_address_change
 	)
 	
-	bpy.types.Scene.bmc_port = bpy.props.IntProperty( 
+	bpy.types.WindowManager.bmc_port = bpy.props.IntProperty(
 		name="Port",
 		description="Local port to bind UDP server to",
-		default=34198
+		default=34198,
+		update=on_address_change
 	)
 	
-	bpy.types.Scene.bmc_connected_devices = bpy.props.CollectionProperty( #TODO: fix this
+	bpy.types.WindowManager.bmc_connected_devices = bpy.props.CollectionProperty( #TODO: fix this
 		type=BmcDevice,
 	)
 	
-	bpy.types.Scene.bmc_connected_device_index = bpy.props.IntProperty(
+	bpy.types.WindowManager.bmc_connected_device_index = bpy.props.IntProperty(
 	)
+	
+	update_qr_code()
 
 def unregister():
-	del bpy.types.Scene.bmc_interface
-	del bpy.types.Scene.bmc_port
-	del bpy.types.Scene.bmc_connected_devices
-	del bpy.types.Scene.bmc_connected_device_index
+	del bpy.types.WindowManager.bmc_interface
+	del bpy.types.WindowManager.bmc_port
+	del bpy.types.WindowManager.bmc_connected_devices
+	del bpy.types.WindowManager.bmc_connected_device_index
+	del bpy.types.WindowManager.qr_code
