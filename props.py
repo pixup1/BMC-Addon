@@ -1,11 +1,17 @@
 # bpy-only syntax
 # pyright: reportAttributeAccessIssue=false
+# pyright: reportInvalidTypeForm=false
 
 import bpy
 import bpy.utils.previews
 from .utils import generate_qr_code
-from .device import BmcDevice
 from .utils import get_ifs
+
+class BmcDevice(bpy.types.PropertyGroup):
+	name: bpy.props.StringProperty(name="Device Hostname")
+	ip: bpy.props.StringProperty(name="Device IP Address")
+	port: bpy.props.IntProperty(name="Device Port")
+	object: bpy.props.PointerProperty(type=bpy.types.Object)
 
 pcoll = None
 
@@ -16,7 +22,11 @@ def update_qr_code():
 	
 	pcoll.clear()
 	
-	img = pcoll.load("bmc_qr_code", generate_qr_code(), 'IMAGE')
+	assert bpy.context.preferences is not None
+	theme = bpy.context.preferences.themes[0]
+	bg_color = (int(theme.user_interface.wcol_regular.inner[0]*256.0), int(theme.user_interface.wcol_regular.inner[1]*256.0), int(theme.user_interface.wcol_regular.inner[2]*256.0))
+	fg_color = (int(theme.user_interface.wcol_regular.text[0]*256.0), int(theme.user_interface.wcol_regular.text[1]*256.0), int(theme.user_interface.wcol_regular.text[2]*256.0))
+	img = pcoll.load("bmc_qr_code", generate_qr_code(bg_color, fg_color), 'IMAGE')
 	
 	items = []
 	
@@ -36,6 +46,8 @@ def on_address_change(self, context: bpy.types.Context):
 			area.tag_redraw()
 
 def register() -> None:
+	bpy.utils.register_class(BmcDevice)
+
 	global pcoll
 	pcoll = bpy.utils.previews.new()
 	ifs = get_ifs()
@@ -70,6 +82,8 @@ def unregister():
 	del bpy.types.WindowManager.bmc_connected_devices
 	del bpy.types.WindowManager.bmc_connected_device_index
 	del bpy.types.WindowManager.qr_code
+	
+	bpy.utils.unregister_class(BmcDevice)
 	
 	global pcoll
 	bpy.utils.previews.remove(pcoll)

@@ -39,19 +39,20 @@ def get_ip_port():
 	raise ValueError("Selected interface not found")
 
 # Generate a QR code png and save it in the OS temp directory
-def generate_qr_code():
+# Returns the path to the image file
+def generate_qr_code(bg_color, fg_color):
 	ip, port = get_ip_port()
 	
 	qr = qrcode.QRCode(
 		version=1,
 		error_correction=qrcode.constants.ERROR_CORRECT_L,
 		box_size=10,
-		border=4,
+		border=1,
 	)
 	qr.add_data(f"{ip}:{port}")
 	qr.make(fit=True)
 	
-	pil_img = qr.make_image(fill_color="black", back_color="white") #TODO: make pretty with theme colors
+	pil_img = qr.make_image(fill_color=fg_color, back_color=bg_color) #TODO: make pretty with theme colors
 	
 	qr_file = os.path.join(tempfile.gettempdir(), "bmc_qr_code.png")
 	with open(qr_file, 'wb') as f:

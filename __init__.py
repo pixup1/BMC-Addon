@@ -10,18 +10,21 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 '''
 
-from . import props, ui, device, server as serv
+from . import props, ui
+from .server import Server
+from .utils import get_ip_port
+
+srv = None
 
 def register():
-	device.register()
 	props.register()
 	ui.register()
+	global srv
+	srv = Server(*get_ip_port())
 	
 def unregister():
 	ui.unregister()
 	props.unregister()
-	device.unregister()
-
-if __name__ == "__main__":
-	register()
-	server = serv.Server(ip="127.0.0.1", port=34198)
+	global srv
+	if srv is not None:
+		srv.stop()
