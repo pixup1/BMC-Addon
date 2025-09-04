@@ -14,12 +14,22 @@ def get_ifs() -> list[tuple[str, str, str]]:
 	ifs = []
 	adapters = ifaddr.get_adapters()
 
-	for adapter in adapters: #TODO: Make loopback last option
+	for adapter in adapters:
 		ifs.append((adapter.name, adapter.nice_name, adapter.ips[0].ip))
 	
 	return ifs
 
 # print(get_ifs())
+
+SKIP_ID_PREFIXES = ("lo", "br-", "docker", "wg", "tun", "utun", "bridge", "vboxnet", "veth")
+SKIP_NAME_PREFIXES = ("Loopback", "vEthernet", "VirtualBox", "TAP") # IDs of interfaces are useless in Windows
+
+# Returns the identifier of the most appropriate interface
+def pick_default_if(ifs: list[tuple[str, str, str]]):
+	for interface in ifs:
+		if not (interface[0].startswith(SKIP_ID_PREFIXES) or interface[1].startswith(SKIP_NAME_PREFIXES)):
+			return interface[0]
+	return ifs[0][0]
 
 # Get the currently selected IP and port
 def get_ip_port():

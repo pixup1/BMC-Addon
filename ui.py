@@ -1,9 +1,25 @@
 # bpy-specific syntax
 # pyright: reportAttributeAccessIssue=false
 
+from typing import Any
 import bpy
-from bpy.types import Context
+from bpy.types import Context, UILayout
 from .utils import get_ip_port
+
+class BmcDeviceListUI(bpy.types.UIList):
+	bl_idname = "BMC_DEVICES_UL_list"
+	
+	def draw_item(self, context, layout, data, item, icon, active_data, active_property, index, flt_flag):
+		if self.layout_type == 'DEFAULT':
+			if isinstance(item, bpy.types.PropertyGroup):
+				row = layout.row()
+				
+				row.label(text=item.name)
+				
+				sub_layout = row.row()
+				sub_layout.alignment = 'RIGHT'
+				sub_layout.enabled = False  # This greys out the label
+				sub_layout.label(text=item.ip)
 
 class BmcPanel(bpy.types.Panel):
 	bl_category = "Motion Control"
@@ -24,7 +40,8 @@ class BmcMainPanel(BmcPanel):
 		
 		layout.label(text="Scan to connect:")
 		
-		layout.template_icon_view(wm, "qr_code")
+		# This is seemingly the only way to display an arbitrary image in the UI
+		layout.template_icon_view(wm, "qr_code", scale=8)
 		
 		box = layout.box()
 		row = box.row()
@@ -33,7 +50,9 @@ class BmcMainPanel(BmcPanel):
 
 class BmcSubPanel1(BmcPanel):
 	bl_parent_id = "VIEW3D_PT_bmc_panel"
+	bl_idname = "VIEW3D_PT_bmc_panel_settings"
 	bl_label = "Server Settings"
+	bl_options = {'DEFAULT_CLOSED'}
 	
 	def draw(self, context: Context):
 		assert self.layout is not None
@@ -41,11 +60,17 @@ class BmcSubPanel1(BmcPanel):
 		assert context.window_manager is not None
 		wm = context.window_manager
 		
-		layout.prop(wm, "bmc_interface") #TODO: add a refresh button for the interfaces
+		layout.label(text="Changing these values will disconnect all devices", icon='WARNING_LARGE')
+		
+		row = layout.row()
+		row.prop(wm, "bmc_interface")
+		row.operator("wm.bmc_refresh_ifs", text="", icon='FILE_REFRESH', emboss=False)
+		
 		layout.prop(wm, "bmc_port")
 
 class BmcSubPanel2(BmcPanel):
 	bl_parent_id = "VIEW3D_PT_bmc_panel"
+	bl_idname = "VIEW3D_PT_bmc_panel_devices"
 	bl_label = "Connected Devices"
 	
 	def draw(self, context: Context):
@@ -56,21 +81,26 @@ class BmcSubPanel2(BmcPanel):
 		
 		box = layout.box()
 		box.template_list( #TODO: fix this
-			listtype_name="bmc_devices",
+			listtype_name="BMC_DEVICES_UL_list",
 			list_id="bmc_devices",
 			dataptr=wm,
-			propname="bmc_connected_devices",
+			propname="bmc_devices",
 			active_dataptr=wm,
-			active_propname="bmc_connected_device_index",
+			active_propname="bmc_device_index",
 		)
-	
+		
+		if 0 <= wm.bmc_device_index < len(wm.bmc_devices):
+			device = wm.bmc_devices[wm.bmc_device_index]
+			box.prop(device, "object")
 
 def register():
+	bpy.utils.register_class(BmcDeviceListUI)
 	bpy.utils.register_class(BmcMainPanel)
 	bpy.utils.register_class(BmcSubPanel1)
 	bpy.utils.register_class(BmcSubPanel2)
 
 def unregister():
-	bpy.utils.unregister_class(BmcMainPanel)
-	bpy.utils.unregister_class(BmcSubPanel1)
 	bpy.utils.unregister_class(BmcSubPanel2)
+	bpy.utils.unregister_class(BmcSubPanel1)
+	bpy.utils.unregister_class(BmcMainPanel)
+	bpy.utils.unregister_class(BmcDeviceListUI)

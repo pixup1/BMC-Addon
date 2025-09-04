@@ -11,7 +11,6 @@ class Device:
 		self.server = server
 		
 		self.connection_timer = threading.Timer(0.2, self.timeout)
-		
 		self.reset_timer()
 		
 	def reset_timer(self):
@@ -27,22 +26,25 @@ class Server:
 	def __init__(self, ip, port):
 		self.ip = ip
 		self.port = port
+		
+		self.connected_devices: list[Device] = []
 	
 	def start(self):
-		self.connected_devices: list[Device] = []
-		
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.sock.bind((self.ip, self.port))
+		self.sock.settimeout(0.2)
 		
 		self.stop_event = threading.Event()
 		self.listen_thread = threading.Thread(target=self.listen, daemon=True)
-	
+		self.listen_thread.start()
+
 	def stop(self):
 		self.stop_event.set()
 		for device in self.connected_devices:
-			self.disconnect_device(device)
-		self.listen_thread.join()
+			self.disconnect_device(device.address)
 		self.sock.close()
+		if self.listen_thread.is_alive():
+			self.listen_thread.join()
 	
 	def change_address(self, ip, port):
 		self.stop()
@@ -59,8 +61,14 @@ class Server:
 	
 	def listen(self):
 		while not self.stop_event.is_set():
-			bytes, address = self.sock.recvfrom(1024)
-			
+			try:
+				bytes, address = self.sock.recvfrom(1024)
+			except socket.timeout:
+				continue
+			except OSError: # Socket closed
+				if self.stop_event.is_set():
+					break
+				raise
 			
 			string = bytes.decode('utf-8')
 			

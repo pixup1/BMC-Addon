@@ -10,21 +10,25 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 '''
 
-from . import props, ui
+from . import props, ops, ui
 from .server import Server
 from .utils import get_ip_port
 
 srv = None
 
 def register():
-	props.register()
-	ui.register()
+	props.register1()
 	global srv
 	srv = Server(*get_ip_port())
-	
+	props.register2(srv)
+	ops.register()
+	ui.register()
+	srv.start()
+
 def unregister():
-	ui.unregister()
-	props.unregister()
 	global srv
 	if srv is not None:
 		srv.stop()
+	ui.unregister()
+	ops.unregister()
+	props.unregister()
