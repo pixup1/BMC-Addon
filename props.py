@@ -6,28 +6,8 @@ import bpy
 import bpy.utils.previews
 from .utils import generate_qr_code, get_ifs, pick_default_if, get_ip_port
 from .server import Server
-
-class BmcDevice(bpy.types.PropertyGroup):
-	name: bpy.props.StringProperty(
-		name="Device Name",
-		description="Name of the device"
-	)
-	
-	ip: bpy.props.StringProperty(
-		name="Device IP Address",
-		description="IP address of the device"
-	)
-	
-	port: bpy.props.IntProperty(
-		name="Device Port",
-		description="Remote port the device is communicating from"
-	)
-	
-	object: bpy.props.PointerProperty(
-		type=bpy.types.Object,
-		name="Controlled Object",
-		description="Object controlled by this device"
-	)
+from .device import BmcDevice
+from .ui import redraw_ui
 
 pcoll = None
 
@@ -58,9 +38,7 @@ def on_address_change(self, context: bpy.types.Context, srv: Server):
 	
 	update_qr_code()
 	
-	for area in context.screen.areas:
-		if area.type == 'VIEW3D_PT_bmc_panel':
-			area.tag_redraw()
+	redraw_ui("FULL")
 
 def register1(): # Initialize temporary props needed for server creation
 	ifs = get_ifs()

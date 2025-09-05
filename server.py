@@ -1,7 +1,11 @@
+# bpy-only syntax
+# pyright: reportAttributeAccessIssue=false
+
 import socket
 import threading
+from .device import add_bmc_device, remove_bmc_device
 
-#TODO: add a callback for the server to add and remove BmcDevice objects, and set motion data for a BmcDevice
+#TODO: handle firewall
 
 class Device:
 	def __init__(self, name, address, server):
@@ -53,11 +57,21 @@ class Server:
 	
 	def connect_device(self, name, address):
 		self.connected_devices.append(Device(name, address, self))
+		
+		#This is AF_INET, so address is (ip, port)
+		add_bmc_device(name, address[0], address[1])
+		
+		print(f"Connected to device {name} at {address[0]}:{address[1]}")
 	
 	def disconnect_device(self, address):
 		device_to_remove = next((device for device in self.connected_devices if device.address == address), None)
+		
 		if device_to_remove:
 			self.connected_devices.remove(device_to_remove)
+		
+		remove_bmc_device(address[0])
+		
+		print(f"Disconnected device at {address[0]}:{address[1]}")
 	
 	def listen(self):
 		while not self.stop_event.is_set():
@@ -73,9 +87,9 @@ class Server:
 			string = bytes.decode('utf-8')
 			
 			type = string.split(' ')[0]
-			msg = string.split(' ')[1:]
+			msg = ' '.join(string.split(' ')[1:])
 			
-			device = next((device for device in self.connected_devices if device.address == address), None)
+			device: Device | None = next((device for device in self.connected_devices if device.address == address), None)
 			if not device:
 				if type == "CONNECT":
 					self.connect_device(msg, address)

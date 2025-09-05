@@ -1,10 +1,43 @@
 # bpy-specific syntax
 # pyright: reportAttributeAccessIssue=false
 
-from typing import Any
 import bpy
-from bpy.types import Context, UILayout
+from bpy.types import Context
 from .utils import get_ip_port
+from typing import Literal
+
+RedrawType = Literal["NONE", "FULL", "SETTINGS", "DEVICES"]
+redraw_requested: RedrawType = "NONE"
+
+def redraw_ui(type: RedrawType = "FULL"):
+	global redraw_requested
+	if type != "NONE" and redraw_requested != "NONE" and redraw_requested != type:
+		redraw_requested = "FULL"
+	else:
+		redraw_requested = type
+	print("Requested UI redraw")
+
+# Context is only available from the main thread, so we can't refresh the UI directly from background threads
+def redraw_timer():
+	global redraw_requested
+	if redraw_requested != "NONE":
+		assert bpy.context.screen is not None
+		panel_id = "VIEW3D_PT_bmc_panel"
+		
+		match redraw_requested:
+			case "SETTINGS":
+				panel_id = "VIEW3D_PT_bmc_panel_settings"
+			case "DEVICES":
+				panel_id = "VIEW3D_PT_bmc_panel_devices"
+		
+		for area in bpy.context.screen.areas:
+			if area.type == "VIEW_3D": #TODO: fix this, find a way to only update the BMC panel
+				area.tag_redraw()
+				print("Redrew UI yes sir")
+		
+		redraw_requested = "NONE"
+		print("Redrew UI")
+	return 0.1
 
 class BmcDeviceListUI(bpy.types.UIList):
 	bl_idname = "BMC_DEVICES_UL_list"
@@ -98,8 +131,10 @@ def register():
 	bpy.utils.register_class(BmcMainPanel)
 	bpy.utils.register_class(BmcSubPanel1)
 	bpy.utils.register_class(BmcSubPanel2)
+	bpy.app.timers.register(redraw_timer, persistent=True)
 
 def unregister():
+	bpy.app.timers.unregister(redraw_timer)
 	bpy.utils.unregister_class(BmcSubPanel2)
 	bpy.utils.unregister_class(BmcSubPanel1)
 	bpy.utils.unregister_class(BmcMainPanel)
