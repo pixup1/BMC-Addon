@@ -4,38 +4,25 @@
 import bpy
 from bpy.types import Context
 from .utils import get_ip_port
-from typing import Literal
 
-RedrawType = Literal["NONE", "FULL", "SETTINGS", "DEVICES"]
-redraw_requested: RedrawType = "NONE"
+redraw_requested = False
 
-def redraw_ui(type: RedrawType = "FULL"):
+def redraw_ui():
 	global redraw_requested
-	if type != "NONE" and redraw_requested != "NONE" and redraw_requested != type:
-		redraw_requested = "FULL"
-	else:
-		redraw_requested = type
+	redraw_requested = True
 	print("Requested UI redraw")
 
 # Context is only available from the main thread, so we can't refresh the UI directly from background threads
 def redraw_timer():
 	global redraw_requested
-	if redraw_requested != "NONE":
+	if redraw_requested:
 		assert bpy.context.screen is not None
-		panel_id = "VIEW3D_PT_bmc_panel"
-		
-		match redraw_requested:
-			case "SETTINGS":
-				panel_id = "VIEW3D_PT_bmc_panel_settings"
-			case "DEVICES":
-				panel_id = "VIEW3D_PT_bmc_panel_devices"
-		
 		for area in bpy.context.screen.areas:
-			if area.type == "VIEW_3D": #TODO: fix this, find a way to only update the BMC panel
-				area.tag_redraw()
-				print("Redrew UI yes sir")
-		
-		redraw_requested = "NONE"
+			if area.type == "VIEW_3D":
+				for region in area.regions:
+					if region.type == "UI":
+						area.tag_redraw()
+		redraw_requested = False
 		print("Redrew UI")
 	return 0.1
 
@@ -113,7 +100,7 @@ class BmcSubPanel2(BmcPanel):
 		wm = context.window_manager
 		
 		box = layout.box()
-		box.template_list( #TODO: fix this
+		box.template_list(
 			listtype_name="BMC_DEVICES_UL_list",
 			list_id="bmc_devices",
 			dataptr=wm,

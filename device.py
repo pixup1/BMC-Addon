@@ -34,7 +34,7 @@ def add_bmc_device(name, ip, port):
 	device.ip = ip
 	device.port = port
 	
-	redraw_ui("DEVICES")
+	redraw_ui()
 
 def remove_bmc_device(ip):
 	assert bpy.context.window_manager is not None
@@ -43,5 +43,5 @@ def remove_bmc_device(ip):
 		if device.ip == ip:
 			wm.bmc_devices.remove(i)
 			
-			redraw_ui("DEVICES")
+			redraw_ui()
 			return

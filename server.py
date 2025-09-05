@@ -14,13 +14,13 @@ class Device:
 		
 		self.server = server
 		
-		self.connection_timer = threading.Timer(0.2, self.timeout)
+		# Disconnect if no data received in one second
+		self.connection_timer = threading.Timer(1, self.timeout)
 		self.reset_timer()
 		
 	def reset_timer(self):
-		# Disconnect if no data received in 200ms
 		self.connection_timer.cancel()
-		self.connection_timer = threading.Timer(0.2, self.timeout)
+		self.connection_timer = threading.Timer(1, self.timeout)
 		self.connection_timer.start()
 		
 	def timeout(self):

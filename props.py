@@ -38,7 +38,7 @@ def on_address_change(self, context: bpy.types.Context, srv: Server):
 	
 	update_qr_code()
 	
-	redraw_ui("FULL")
+	redraw_ui()
 
 def register1(): # Initialize temporary props needed for server creation
 	ifs = get_ifs()
@@ -92,17 +92,6 @@ def register2(srv: Server): # Initialize actual props
 		name="Selected BMC Device Index"
 	)
 	
-	# TEMP example device
-	assert bpy.context.window_manager is not None
-	example_device1 = bpy.context.window_manager.bmc_devices.add()
-	example_device1.name = "Example Device 1"
-	example_device1.ip = "192.168.1.104"
-	example_device1.port = 54678
-	example_device2 = bpy.context.window_manager.bmc_devices.add()
-	example_device2.name = "Super Long Name Example Device 2"
-	example_device2.ip = "192.168.1.156"
-	example_device2.port = 64574
-
 	update_qr_code()
 
 def unregister():
