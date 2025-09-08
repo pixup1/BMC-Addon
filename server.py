@@ -5,7 +5,7 @@ import socket
 import threading
 from .device import add_bmc_device, remove_bmc_device
 
-#TODO: handle firewall
+#TODO: handle firewall or at least warn user to open it
 
 class Device:
 	def __init__(self, name, address, server):
@@ -93,21 +93,21 @@ class Server:
 			if not device:
 				if type == "CONNECT":
 					self.connect_device(msg, address)
-					self.sock.sendto(b"ACK Connected", address)
-				else:
+					self.sock.sendto(b"CONNECT Connected", address)
+				elif type == "PING":
 					self.sock.sendto(b"ERR Not connected", address)
 			else:
 				device.reset_timer()
 				match type:
 					case "CONNECT":
-						self.sock.sendto(b"ERR Already connected", address)
+						self.sock.sendto(b"CONNECT Already connected", address)
 					case "DISCONNECT":
 						self.disconnect_device(address)
-						self.sock.sendto(b"ACK", address)
+						self.sock.sendto(b"DISCONNECT Disconnected", address)
 					case "DATA":
 						#TODO: handle motion data
-						self.sock.sendto(b"ACK", address)
+						pass
 					case "PING":
-						self.sock.sendto(b"ACK", address)
+						self.sock.sendto(b"PONG " + msg.encode("utf-8"), address)
 					case _:
-						self.sock.sendto(b"ERR Unknown message", address)
+						pass
