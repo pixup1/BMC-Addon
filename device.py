@@ -38,7 +38,10 @@ class BmcDevice(bpy.types.PropertyGroup):
 		if loc is not None:
 			self.object.location = loc
 		if rot is not None:
-			self.object.rotation_euler = rot
+			mode = self.object.rotation_mode
+			self.object.rotation_mode = 'QUATERNION'
+			self.object.rotation_quaternion = rot
+			self.object.rotation_mode = mode
 		if scale is not None:
 			self.object.scale = scale
 
@@ -50,6 +53,8 @@ def add_bmc_device(name, ip, port):
 	device.port = port
 	
 	redraw_ui()
+	
+	return device
 
 def remove_bmc_device(ip):
 	assert bpy.context.window_manager is not None
@@ -59,12 +64,4 @@ def remove_bmc_device(ip):
 			wm.bmc_devices.remove(i)
 			
 			redraw_ui()
-			return
-
-def apply_bmc_device_transform(ip, transform):
-	assert bpy.context.window_manager is not None
-	wm = bpy.context.window_manager
-	for device in wm.bmc_devices:
-		if device.ip == ip:
-			device.apply_transform(transform)
 			return

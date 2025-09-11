@@ -9,10 +9,11 @@ from .device import add_bmc_device, remove_bmc_device, apply_bmc_device_transfor
 #TODO: handle firewall or at least warn user to open it
 
 class Device:
-	def __init__(self, name, address, server):
+	def __init__(self, name, address, bmc_device, server):
 		self.name = name
 		self.address = address
 		
+		self.bmc_device = bmc_device
 		self.server = server
 		
 		# Disconnect if no data received in one second
@@ -57,10 +58,10 @@ class Server:
 		self.start()
 	
 	def connect_device(self, name, address):
-		self.connected_devices.append(Device(name, address, self))
-		
 		#This is AF_INET, so address is (ip, port)
-		add_bmc_device(name, address[0], address[1])
+		bmc_device = add_bmc_device(name, address[0], address[1])
+	
+		self.connected_devices.append(Device(name, address, bmc_device, self))
 		
 		print(f"Connected to device {name} at {address[0]}:{address[1]}")
 	
@@ -106,7 +107,7 @@ class Server:
 						self.disconnect_device(address)
 						self.sock.sendto(b"DISCONNECT Disconnected", address)
 					case "DATA":
-						apply_bmc_device_transform(device.address[0], json.loads(msg))
+						device.bmc_device.apply_transform(json.loads(msg))
 					case "PING":
 						self.sock.sendto(b"PONG " + msg.encode("utf-8"), address)
 					case _:
