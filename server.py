@@ -3,7 +3,8 @@
 
 import socket
 import threading
-from .device import add_bmc_device, remove_bmc_device
+import json
+from .device import add_bmc_device, remove_bmc_device, apply_bmc_device_transform
 
 #TODO: handle firewall or at least warn user to open it
 
@@ -105,8 +106,7 @@ class Server:
 						self.disconnect_device(address)
 						self.sock.sendto(b"DISCONNECT Disconnected", address)
 					case "DATA":
-						#TODO: handle motion data
-						pass
+						apply_bmc_device_transform(device.address[0], json.loads(msg))
 					case "PING":
 						self.sock.sendto(b"PONG " + msg.encode("utf-8"), address)
 					case _:

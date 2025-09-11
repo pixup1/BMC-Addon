@@ -10,7 +10,6 @@ redraw_requested = False
 def redraw_ui():
 	global redraw_requested
 	redraw_requested = True
-	print("Requested UI redraw")
 
 # Context is only available from the main thread, so we can't refresh the UI directly from background threads
 def redraw_timer():
@@ -23,7 +22,6 @@ def redraw_timer():
 					if region.type == "UI":
 						area.tag_redraw()
 		redraw_requested = False
-		print("Redrew UI")
 	return 0.1
 
 class BmcDeviceListUI(bpy.types.UIList):
