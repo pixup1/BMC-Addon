@@ -4,9 +4,13 @@
 import socket
 import threading
 import json
-from .device import add_bmc_device, remove_bmc_device, apply_bmc_device_transform
+from .device import add_bmc_device, remove_bmc_device
+from .utils import bmc_print
 
-#TODO: handle firewall or at least warn user to open it
+#TODO: handle firewall or at least warn user to open the port
+
+TIMEOUT = 2 # seconds
+BUF_LENGTH = 1024
 
 class Device:
 	def __init__(self, name, address, bmc_device, server):
@@ -16,13 +20,13 @@ class Device:
 		self.bmc_device = bmc_device
 		self.server = server
 		
-		# Disconnect if no data received in one second
-		self.connection_timer = threading.Timer(1, self.timeout)
+		# Disconnect if no data received in TIMEOUT seconds
+		self.connection_timer = threading.Timer(TIMEOUT, self.timeout)
 		self.reset_timer()
 		
 	def reset_timer(self):
 		self.connection_timer.cancel()
-		self.connection_timer = threading.Timer(1, self.timeout)
+		self.connection_timer = threading.Timer(TIMEOUT, self.timeout)
 		self.connection_timer.start()
 		
 	def timeout(self):
@@ -63,22 +67,24 @@ class Server:
 	
 		self.connected_devices.append(Device(name, address, bmc_device, self))
 		
-		print(f"Connected to device {name} at {address[0]}:{address[1]}")
+		bmc_print(f"Connected to device {name} at {address[0]}:{address[1]}")
 	
 	def disconnect_device(self, address):
-		device_to_remove = next((device for device in self.connected_devices if device.address == address), None)
+		device = next((device for device in self.connected_devices if device.address == address), None)
 		
-		if device_to_remove:
-			self.connected_devices.remove(device_to_remove)
+		if device:
+			#device.bmc_device.apply_transform(device.bmc_device["transform_backup"], True)
+			device.bmc_device.object = None
+			self.connected_devices.remove(device)
 		
 		remove_bmc_device(address[0])
 		
-		print(f"Disconnected device at {address[0]}:{address[1]}")
+		bmc_print(f"Disconnected device at {address[0]}:{address[1]}")
 	
 	def listen(self):
 		while not self.stop_event.is_set():
 			try:
-				bytes, address = self.sock.recvfrom(1024)
+				bytes, address = self.sock.recvfrom(BUF_LENGTH)
 			except socket.timeout:
 				continue
 			except OSError: # Socket closed

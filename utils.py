@@ -8,6 +8,9 @@ import qrcode
 import tempfile
 import os
 
+def bmc_print(msg: str):
+	print(f"[BMC] {msg}")
+
 # Find all network interfaces and their IP addresses
 # Returns a list of (id, name, ip) tuples
 def get_ifs() -> list[tuple[str, str, str]]:
@@ -19,7 +22,7 @@ def get_ifs() -> list[tuple[str, str, str]]:
 	
 	return ifs
 
-# print(get_ifs())
+# bmc_print(get_ifs())
 
 SKIP_ID_PREFIXES = ("lo", "br-", "docker", "wg", "tun", "utun", "bridge", "vboxnet", "veth")
 SKIP_NAME_PREFIXES = ("Loopback", "vEthernet", "VirtualBox", "TAP") # IDs of interfaces are useless in Windows
