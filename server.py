@@ -5,7 +5,7 @@ import socket
 import threading
 import json
 from .device import add_bmc_device, remove_bmc_device
-from .utils import bmc_print
+from .utils import bmc_print, run_main_thread
 
 #TODO: handle firewall or at least warn user to open the port
 
@@ -73,7 +73,6 @@ class Server:
 		device = next((device for device in self.connected_devices if device.address == address), None)
 		
 		if device:
-			#device.bmc_device.apply_transform(device.bmc_device["transform_backup"], True)
 			device.bmc_device.object = None
 			self.connected_devices.remove(device)
 		
@@ -113,7 +112,7 @@ class Server:
 						self.disconnect_device(address)
 						self.sock.sendto(b"DISCONNECT Disconnected", address)
 					case "DATA":
-						device.bmc_device.apply_transform(json.loads(msg)) #TODO: fix blender crash on this line
+						run_main_thread(device.bmc_device.apply_transform, json.loads(msg))
 					case "PING":
 						self.sock.sendto(b"PONG " + msg.encode("utf-8"), address)
 					case _:

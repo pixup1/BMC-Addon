@@ -11,6 +11,13 @@ import os
 def bmc_print(msg: str):
 	print(f"[BMC] {msg}")
 
+# Run a function in the main thread (Blender API is not thread-safe)	
+def run_main_thread(func, *args, **kwargs):
+    def wrapper():
+        func(*args, **kwargs)
+        return None
+    bpy.app.timers.register(wrapper)
+
 # Find all network interfaces and their IP addresses
 # Returns a list of (id, name, ip) tuples
 def get_ifs() -> list[tuple[str, str, str]]:
