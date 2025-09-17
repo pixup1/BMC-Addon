@@ -4,12 +4,15 @@
 
 import bpy
 from .ui import redraw_ui
+from mathutils import Quaternion
 
 def update_object(self, context):
 	if self.object_backup:
 		self.apply_transform(self["transform_backup"], True)
 	self.object_backup = self.object
 	self["transform_backup"] = self.get_transform()
+
+#TODO: fix crash when deleting object
 
 class BmcDevice(bpy.types.PropertyGroup):
 	name: bpy.props.StringProperty(
@@ -38,6 +41,37 @@ class BmcDevice(bpy.types.PropertyGroup):
 		type=bpy.types.Object
 	)
 	
+	loc_mode: bpy.props.EnumProperty(
+		name="Location Mode",
+		description="How to apply device location to object",
+		items=[
+			("add", "Add", "Add device location to object location"),
+			("replace", "Replace", "Set object location to device location"),
+			("disabled", "Disabled", "Do not apply device location to object")
+		],
+		default="add"
+	)
+	
+	rot_mode: bpy.props.EnumProperty(
+		name="Rotation Mode",
+		description="How to apply device rotation to object",
+		items=[
+			("add", "Add", "Add device rotation to object rotation"),
+			("replace", "Replace", "Set object rotation to device rotation"),
+			("disabled", "Disabled", "Do not apply device rotation to object")
+		],
+		default="add"
+	)
+	
+	loc_scale: bpy.props.FloatProperty(
+		name="Location Scale",
+		description="Scale factor for device location (1.0 is 1:1 with real world)",
+		min=0.0,
+		soft_min=0.1,
+		soft_max=100.0,
+		default=1.0
+	)
+	
 	def get_transform(self):
 		if self.object is None:
 			return {}
@@ -55,6 +89,8 @@ class BmcDevice(bpy.types.PropertyGroup):
 		
 		return transform
 	
+	#TODO: convert to keyframes when "Auto Keying" is on (idk how)
+	#TODO: handle adding to animated motion (replace all the calls to self["transform_backup"] with something else idk)
 	def apply_transform(self, transform: dict, apply_to_backup: bool = False):
 		obj = None
 		
@@ -71,13 +107,40 @@ class BmcDevice(bpy.types.PropertyGroup):
 		scale = transform.get("scale", None)
 		
 		if loc is not None:
-			obj.location = loc
+			if apply_to_backup:
+				obj.location = loc
+			else:
+				if self.loc_mode == 'add':
+					obj.location = [a + b for a, b in zip([a * self.loc_scale for a in loc], self["transform_backup"]["loc"])]
+				elif self.loc_mode == 'replace':
+					obj.location = [a * self.loc_scale for a in loc]
+				elif self.loc_mode == 'disabled':
+					obj.location = self["transform_backup"]["loc"]
 		
-		if rot is not None:
-			mode = obj.rotation_mode
-			obj.rotation_mode = 'QUATERNION'
-			obj.rotation_quaternion = rot
-			obj.rotation_mode = mode
+		if rot is not None: #TODO: fix this shit idk wtf is going on (is it still an issue ? hahahaha (i'm going insane))
+			if apply_to_backup:
+				mode = obj.rotation_mode
+				obj.rotation_mode = 'QUATERNION'
+				obj.rotation_quaternion = rot
+				obj.rotation_mode = mode
+			else:
+				if self.rot_mode == 'add':
+					mode = obj.rotation_mode
+					obj.rotation_mode = 'QUATERNION'
+					backup_quat = Quaternion(self["transform_backup"]["rot"])
+					device_quat = Quaternion(rot)
+					obj.rotation_quaternion = device_quat @ backup_quat
+					obj.rotation_mode = mode
+				elif self.rot_mode == 'replace':
+					mode = obj.rotation_mode
+					obj.rotation_mode = 'QUATERNION'
+					obj.rotation_quaternion = rot
+					obj.rotation_mode = mode
+				elif self.rot_mode == 'disabled':
+					mode = obj.rotation_mode
+					obj.rotation_mode = 'QUATERNION'
+					obj.rotation_quaternion = Quaternion(self["transform_backup"]["rot"])
+					obj.rotation_mode = mode
 		
 		if scale is not None:
 			obj.scale = scale

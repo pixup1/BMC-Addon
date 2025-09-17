@@ -110,6 +110,9 @@ class BmcSubPanel2(BmcPanel):
 		if 0 <= wm.bmc_device_index < len(wm.bmc_devices):
 			device = wm.bmc_devices[wm.bmc_device_index]
 			box.prop(device, "object")
+			box.prop(device, "loc_mode")
+			box.prop(device, "rot_mode")
+			box.prop(device, "loc_scale")
 
 def register():
 	bpy.utils.register_class(BmcDeviceListUI)

@@ -56,7 +56,7 @@ wheels = [ #TODO: use GPL packages
 # # For longer explanations use the documentation or detail page.
 #
 [permissions]
-network = "Communicate with BMC - App on mobile devices"
+network = "Communicate with the BMC app on mobile devices"
 # files = "Import/export FBX from/to disk"
 # clipboard = "Copy and paste bone transforms"
 

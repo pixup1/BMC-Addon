@@ -113,7 +113,7 @@ class Server:
 						self.disconnect_device(address)
 						self.sock.sendto(b"DISCONNECT Disconnected", address)
 					case "DATA":
-						device.bmc_device.apply_transform(json.loads(msg))
+						device.bmc_device.apply_transform(json.loads(msg)) #TODO: fix blender crash on this line
 					case "PING":
 						self.sock.sendto(b"PONG " + msg.encode("utf-8"), address)
 					case _:
