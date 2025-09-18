@@ -100,7 +100,7 @@ class Server:
 			if not device:
 				if type == "CONNECT":
 					self.connect_device(msg, address)
-					self.sock.sendto(b"CONNECT Connected", address)
+					self.sock.sendto(b"CONNECT Connected " + socket.gethostname().encode("utf-8"), address)
 				elif type == "PING":
 					self.sock.sendto(b"ERR Not connected", address)
 			else:

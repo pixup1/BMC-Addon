@@ -72,7 +72,7 @@ def generate_qr_code(bg_color, fg_color):
 	qr.add_data(f"{ip}:{port}")
 	qr.make(fit=True)
 	
-	pil_img = qr.make_image(fill_color=fg_color, back_color=bg_color) #TODO: make pretty with theme colors
+	pil_img = qr.make_image(fill_color=fg_color, back_color=bg_color)
 	
 	qr_file = os.path.join(tempfile.gettempdir(), "bmc_qr_code.png")
 	with open(qr_file, 'wb') as f:

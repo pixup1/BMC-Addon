@@ -12,8 +12,6 @@ def update_object(self, context):
 	self.object_backup = self.object
 	self["transform_backup"] = self.get_transform()
 
-#TODO: fix crash when deleting object
-
 class BmcDevice(bpy.types.PropertyGroup):
 	name: bpy.props.StringProperty(
 		name="Device Name",
