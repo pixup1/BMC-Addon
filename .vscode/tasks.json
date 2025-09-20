@@ -4,9 +4,9 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Zip Addon",
+			"label": "Build Addon",
 			"type": "shell",
-			"command": "rm -f ../${workspaceFolderBasename}.zip && zip -r ../${workspaceFolderBasename}.zip .", //TODO: Replace with "blender --command extension build --source-dir ../${workspaceFolderBasename}.zip" which crashes rn idk why
+			"command": "blender --command extension build",
 			"group": {
 				"kind": "build",
 				"isDefault": true
