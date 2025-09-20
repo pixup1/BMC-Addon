@@ -54,7 +54,7 @@ class BmcDevice(bpy.types.PropertyGroup):
 		items=[
 			("add", "Add", "Add device location to object location"),
 			("replace", "Replace", "Set object location to device location"),
-			("disabled", "Disabled", "Do not apply device location to object")
+			("disabled", "Off", "Do not apply device location to object")
 		],
 		default="add"
 	)
@@ -65,7 +65,7 @@ class BmcDevice(bpy.types.PropertyGroup):
 		items=[
 			("add", "Add", "Add device rotation to object rotation"),
 			("replace", "Replace", "Set object rotation to device rotation"),
-			("disabled", "Disabled", "Do not apply device rotation to object")
+			("disabled", "Off", "Do not apply device rotation to object")
 		],
 		default="add"
 	)

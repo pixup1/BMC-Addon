@@ -85,6 +85,14 @@ class BmcSubPanel1(BmcPanel):
 		row.operator("wm.bmc_refresh_ifs", text="", icon='FILE_REFRESH', emboss=False)
 		
 		layout.prop(wm, "bmc_port")
+		
+		layout.label(text="This port must be open in your firewall!")
+		op = layout.operator(
+			'wm.url_open',
+			text='How to do that',
+			icon='URL'
+			)
+		op.url = 'https://www.wikihow.com/Open-Ports'
 
 class BmcSubPanel2(BmcPanel):
 	bl_parent_id = "VIEW3D_PT_bmc_panel"
@@ -110,8 +118,15 @@ class BmcSubPanel2(BmcPanel):
 		if 0 <= wm.bmc_device_index < len(wm.bmc_devices):
 			device = wm.bmc_devices[wm.bmc_device_index]
 			box.prop(device, "object")
-			box.prop(device, "loc_mode")
-			box.prop(device, "rot_mode")
+			
+			row1 = box.row()
+			row1.label(text="Location Mode:")
+			row1.prop(device, "loc_mode", expand=True)
+			
+			row2 = box.row()
+			row2.label(text="Rotation Mode:")
+			row2.prop(device, "rot_mode", expand=True)
+			
 			box.prop(device, "loc_scale")
 
 def register():
