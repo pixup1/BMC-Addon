@@ -12,6 +12,15 @@ def update_object(self, context):
 	self.object_backup = self.object
 	self["transform_backup"] = self.get_transform()
 
+def apply_rotation(obj, mode, rot):
+	match mode:
+		case 'QUATERNION':
+			obj.rotation_quaternion = rot
+		case 'AXIS_ANGLE':
+			obj.rotation_axis_angle = rot.to_axis_angle()
+		case _:
+			obj.rotation_euler = rot.to_euler(mode)
+
 class BmcDevice(bpy.types.PropertyGroup):
 	name: bpy.props.StringProperty(
 		name="Device Name",
@@ -102,6 +111,10 @@ class BmcDevice(bpy.types.PropertyGroup):
 		rot = transform.get("rot", None)
 		scale = transform.get("scale", None)
 		
+		do_keyframes = False
+		if bpy.context.scene is not None:
+			do_keyframes = bpy.context.scene.tool_settings.use_keyframe_insert_auto
+		
 		if loc is not None:
 			if apply_to_backup:
 				obj.location = loc
@@ -112,34 +125,32 @@ class BmcDevice(bpy.types.PropertyGroup):
 					obj.location = [a * self.loc_scale for a in loc]
 				elif self.loc_mode == 'disabled':
 					obj.location = self["transform_backup"]["loc"]
+			if do_keyframes and not self.loc_mode == 'disabled':
+				obj.keyframe_insert(data_path="location")
 		
 		if rot is not None:
+			rot = Quaternion(rot)
+			mode = obj.rotation_mode
 			if apply_to_backup:
-				mode = obj.rotation_mode
-				obj.rotation_mode = 'QUATERNION'
-				obj.rotation_quaternion = rot
-				obj.rotation_mode = mode
+				apply_rotation(obj, mode, rot)
 			else:
 				if self.rot_mode == 'add':
-					mode = obj.rotation_mode
-					obj.rotation_mode = 'QUATERNION'
-					backup_quat = Quaternion(self["transform_backup"]["rot"])
-					device_quat = Quaternion(rot)
-					obj.rotation_quaternion = device_quat @ backup_quat
-					obj.rotation_mode = mode
+					apply_rotation(obj, mode, rot @ Quaternion(self["transform_backup"]["rot"]))
 				elif self.rot_mode == 'replace':
-					mode = obj.rotation_mode
-					obj.rotation_mode = 'QUATERNION'
-					obj.rotation_quaternion = rot
-					obj.rotation_mode = mode
+					apply_rotation(obj, mode, rot)
 				elif self.rot_mode == 'disabled':
-					mode = obj.rotation_mode
-					obj.rotation_mode = 'QUATERNION'
-					obj.rotation_quaternion = Quaternion(self["transform_backup"]["rot"])
-					obj.rotation_mode = mode
+					apply_rotation(obj, mode, Quaternion(self["transform_backup"]["rot"]))
+			if do_keyframes and not self.loc_mode == 'disabled':
+				path = "rotation_quaternion"
+				match mode:
+					case 'AXIS_ANGLE':
+						path = "rotation_axis_angle"
+					case _:
+						path = "rotation_euler"
+				obj.keyframe_insert(data_path=path)
 		
-		if scale is not None:
-			obj.scale = scale
+		# if scale is not None:
+		# 	obj.scale = scale
 
 def add_bmc_device(name, ip, port):
 	assert bpy.context.window_manager is not None
