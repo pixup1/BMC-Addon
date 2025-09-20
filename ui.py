@@ -37,7 +37,7 @@ class BmcDeviceListUI(bpy.types.UIList):
 				sub_layout = row.row()
 				sub_layout.alignment = 'RIGHT'
 				sub_layout.enabled = False  # This greys out the label
-				sub_layout.label(text=item.ip) #TODO: add a disconnect button
+				sub_layout.label(text=item.ip)
 
 class BmcPanel(bpy.types.Panel):
 	bl_category = "Motion Control"

@@ -15,7 +15,7 @@ class RefreshIfsOperator(bpy.types.Operator):
 		
 		ifs = [("fake", "Fake Interface", "1.1.1.1")] #get_ifs()
 		
-		# bpy.types.WindowManager.bmc_interface = bpy.props.EnumProperty( #TODO
+		# bpy.types.WindowManager.bmc_interface = bpy.props.EnumProperty(
 		# 	name="Interface",
 		# 	description="Network interface to bind UDP server to",
 		# 	items=[(id, name, "IP: "+str(ip)) for (id, name, ip) in ifs],

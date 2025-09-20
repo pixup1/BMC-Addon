@@ -7,8 +7,6 @@ import json
 from .device import add_bmc_device, remove_bmc_device
 from .utils import bmc_print, run_main_thread
 
-#TODO: handle firewall or at least warn user to open the port
-
 TIMEOUT = 2 # seconds
 BUF_LENGTH = 1024
 

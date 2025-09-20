@@ -87,8 +87,6 @@ class BmcDevice(bpy.types.PropertyGroup):
 		
 		return transform
 	
-	#TODO: convert to keyframes when "Auto Keying" is on (idk how)
-	#TODO: handle adding to animated motion (replace all the calls to self["transform_backup"] with something else idk)
 	def apply_transform(self, transform: dict, apply_to_backup: bool = False):
 		obj = None
 		
@@ -115,7 +113,7 @@ class BmcDevice(bpy.types.PropertyGroup):
 				elif self.loc_mode == 'disabled':
 					obj.location = self["transform_backup"]["loc"]
 		
-		if rot is not None: #TODO: fix this shit idk wtf is going on (is it still an issue ? hahahaha (i'm going insane))
+		if rot is not None:
 			if apply_to_backup:
 				mode = obj.rotation_mode
 				obj.rotation_mode = 'QUATERNION'
