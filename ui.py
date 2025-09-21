@@ -86,7 +86,7 @@ class BmcSubPanel1(BmcPanel):
 		
 		layout.prop(wm, "bmc_port")
 		
-		layout.label(text="This port must be open in your firewall!")
+		layout.label(text="This UDP port must be open in your firewall!")
 		op = layout.operator(
 			'wm.url_open',
 			text='How to do that',
